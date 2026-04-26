@@ -98,6 +98,7 @@ I found your vacancy listing on SRM Vacancies and I'm interested. Here are the d
 🤝 Brokerage: ${no_brokerage ? "No brokerage" : brokerage ? `₹${brokerage?.toLocaleString("en-IN")}` : "Not specified"}
 ${preferred && preferred.length > 0 ? `✅ Preferred: ${preferred.map((p) => PREFERRED_LABELS[p] || p).join(", ")}` : ""}
 ${comments ? `📝 Comments: ${comments}` : ""}
+Use this link to join the WhatsApp community: https://chat.whatsapp.com/C04vyJZIWGwJ7Pos9QmV9b
 
 Is this vacancy still available? I'd love to know more!`,
   );
