@@ -6,6 +6,7 @@ import PostVacancyModal from "../components/PostVacancyModal";
 import DeleteModal from "../components/DeleteModal";
 import PostSuccess from "./PostSuccess";
 import { supabase } from "../lib/supabase";
+import Footer from "../components/Footer";
 
 const INITIAL_FILTERS = {
   property: "",
@@ -168,6 +169,9 @@ export default function Home() {
       {showSuccess && (
         <PostSuccess deleteCode={deleteCode} onBack={handleSuccessBack} />
       )}
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 }

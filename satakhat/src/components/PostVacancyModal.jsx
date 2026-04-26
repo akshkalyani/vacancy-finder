@@ -1,7 +1,13 @@
 import { useState } from "react";
-import { X, PlusCircle } from "lucide-react";
+import { X, PlusCircle, ChevronDown } from "lucide-react";
 
 const FLAT_TYPES = ["3BHK 3 Washroom", "3BHK 2 Washroom", "2BHK 2 Washroom"];
+
+const FURNISHING_TYPES = [
+  { value: "fully_furnished", label: "🛋️ Fully Furnished" },
+  { value: "semi_furnished", label: "🪑 Semi Furnished" },
+  { value: "unfurnished", label: "📦 Unfurnished" },
+];
 
 const PREFERRED_OPTIONS = [
   { value: "non_smoker", label: "🚭 Non-smoker" },
@@ -46,10 +52,14 @@ export default function PostVacancyModal({ onClose, onSuccess }) {
     property: "",
     gender: "",
     rent: "",
+    deposit: "",
     flat_type: "",
     floor: "",
+    furnishing_type: "",
+    has_extra_costs: false,
     maintenance: "",
     maintenance_included: false,
+    furnishings: "",
     brokerage: "",
     no_brokerage: false,
     preferred: [],
@@ -80,10 +90,15 @@ export default function PostVacancyModal({ onClose, onSuccess }) {
     if (!form.property) e.property = "Select a property";
     if (!form.gender) e.gender = "Select gender allowed";
     if (!form.rent) e.rent = "Enter rent amount";
+    if (!form.deposit) e.deposit = "Enter deposit amount";
     if (!form.flat_type) e.flat_type = "Select flat type";
     if (!form.floor) e.floor = "Enter floor number";
-    if (!form.maintenance_included && !form.maintenance)
-      e.maintenance = "Enter maintenance or check included";
+    if (!form.furnishing_type) e.furnishing_type = "Select furnishing type";
+    if (form.has_extra_costs) {
+      if (!form.maintenance_included && !form.maintenance)
+        e.maintenance = "Enter maintenance or check included";
+      if (!form.furnishings) e.furnishings = "Enter furnishings/utensils cost";
+    }
     if (!form.no_brokerage && !form.brokerage)
       e.brokerage = "Enter brokerage or check no brokerage";
     if (!form.poster_name.trim()) e.poster_name = "Enter your name";
@@ -101,17 +116,25 @@ export default function PostVacancyModal({ onClose, onSuccess }) {
     }
 
     setLoading(true);
-
     const delete_code = generateDeleteCode();
 
     const payload = {
       property: form.property,
       gender: form.gender,
       rent: parseInt(form.rent),
+      deposit: parseInt(form.deposit),
       flat_type: form.flat_type,
       floor: parseInt(form.floor),
-      maintenance: form.maintenance_included ? 0 : parseInt(form.maintenance),
-      maintenance_included: form.maintenance_included,
+      furnishing_type: form.furnishing_type,
+      has_extra_costs: form.has_extra_costs,
+      maintenance:
+        form.has_extra_costs && !form.maintenance_included
+          ? parseInt(form.maintenance)
+          : 0,
+      maintenance_included: form.has_extra_costs
+        ? form.maintenance_included
+        : false,
+      furnishings: form.has_extra_costs ? parseInt(form.furnishings) || 0 : 0,
       brokerage: form.no_brokerage ? 0 : parseInt(form.brokerage),
       no_brokerage: form.no_brokerage,
       preferred: form.preferred,
@@ -160,7 +183,7 @@ export default function PostVacancyModal({ onClose, onSuccess }) {
           </button>
         </div>
 
-        {/* Scrollable form body */}
+        {/* Scrollable body */}
         <div className="overflow-y-auto px-5 py-4 flex flex-col gap-4">
           {/* Property + Gender */}
           <div className="grid grid-cols-2 gap-3">
@@ -230,41 +253,126 @@ export default function PostVacancyModal({ onClose, onSuccess }) {
             </div>
           </div>
 
-          {/* Rent */}
+          {/* Furnishing type */}
           <div>
-            <Label required>Rent per Month (₹)</Label>
-            <Input
-              type="number"
-              placeholder="e.g. 12000"
-              value={form.rent}
-              onChange={(e) => set("rent", e.target.value)}
-            />
-            {errors.rent && (
-              <p className="text-xs text-red-500 mt-1">{errors.rent}</p>
+            <Label required>Furnishing Type</Label>
+            <div className="flex gap-2 flex-wrap mt-1">
+              {FURNISHING_TYPES.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => set("furnishing_type", opt.value)}
+                  className={`text-xs font-medium px-3 py-1.5 rounded-full border transition-all ${
+                    form.furnishing_type === opt.value
+                      ? "bg-indigo-600 text-white border-indigo-600"
+                      : "bg-gray-50 text-gray-600 border-gray-200 hover:border-indigo-400"
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+            {errors.furnishing_type && (
+              <p className="text-xs text-red-500 mt-1">
+                {errors.furnishing_type}
+              </p>
             )}
           </div>
 
-          {/* Maintenance */}
-          <div>
-            <Label required>Maintenance (₹)</Label>
-            <Input
-              type="number"
-              placeholder="e.g. 1500"
-              value={form.maintenance}
-              disabled={form.maintenance_included}
-              onChange={(e) => set("maintenance", e.target.value)}
-            />
-            <label className="flex items-center gap-2 mt-2 cursor-pointer w-fit">
-              <input
-                type="checkbox"
-                checked={form.maintenance_included}
-                onChange={(e) => set("maintenance_included", e.target.checked)}
-                className="accent-indigo-500 w-4 h-4"
+          {/* Rent + Deposit */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label required>Rent / Month (₹)</Label>
+              <Input
+                type="number"
+                placeholder="e.g. 12000"
+                value={form.rent}
+                onChange={(e) => set("rent", e.target.value)}
               />
-              <span className="text-xs text-gray-500">Included in rent</span>
-            </label>
-            {errors.maintenance && (
-              <p className="text-xs text-red-500 mt-1">{errors.maintenance}</p>
+              {errors.rent && (
+                <p className="text-xs text-red-500 mt-1">{errors.rent}</p>
+              )}
+            </div>
+            <div>
+              <Label required>Deposit (₹)</Label>
+              <Input
+                type="number"
+                placeholder="e.g. 24000"
+                value={form.deposit}
+                onChange={(e) => set("deposit", e.target.value)}
+              />
+              {errors.deposit && (
+                <p className="text-xs text-red-500 mt-1">{errors.deposit}</p>
+              )}
+            </div>
+          </div>
+
+          {/* Extra costs toggle */}
+          <div>
+            <button
+              type="button"
+              onClick={() => set("has_extra_costs", !form.has_extra_costs)}
+              className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl border text-sm font-medium transition-all ${
+                form.has_extra_costs
+                  ? "bg-indigo-50 border-indigo-300 text-indigo-700"
+                  : "bg-gray-50 border-gray-200 text-gray-500 hover:border-indigo-300"
+              }`}
+            >
+              <span>➕ Extra costs on top of rent?</span>
+              <ChevronDown
+                className={`w-4 h-4 transition-transform ${form.has_extra_costs ? "rotate-180" : ""}`}
+              />
+            </button>
+
+            {/* Extra costs fields — shown only if toggled */}
+            {form.has_extra_costs && (
+              <div className="mt-3 flex flex-col gap-3 bg-indigo-50/50 border border-indigo-100 rounded-xl px-4 py-3">
+                {/* Maintenance */}
+                <div>
+                  <Label>Maintenance (₹ / month)</Label>
+                  <Input
+                    type="number"
+                    placeholder="e.g. 1500"
+                    value={form.maintenance}
+                    disabled={form.maintenance_included}
+                    onChange={(e) => set("maintenance", e.target.value)}
+                  />
+                  <label className="flex items-center gap-2 mt-2 cursor-pointer w-fit">
+                    <input
+                      type="checkbox"
+                      checked={form.maintenance_included}
+                      onChange={(e) =>
+                        set("maintenance_included", e.target.checked)
+                      }
+                      className="accent-indigo-500 w-4 h-4"
+                    />
+                    <span className="text-xs text-gray-500">
+                      Included in rent
+                    </span>
+                  </label>
+                  {errors.maintenance && (
+                    <p className="text-xs text-red-500 mt-1">
+                      {errors.maintenance}
+                    </p>
+                  )}
+                </div>
+
+                {/* Furnishings + Utensils */}
+                <div>
+                  <Label>Furnishings & Utensils (₹ / month)</Label>
+                  <Input
+                    type="number"
+                    placeholder="e.g. 500"
+                    value={form.furnishings}
+                    onChange={(e) => set("furnishings", e.target.value)}
+                  />
+                  {errors.furnishings && (
+                    <p className="text-xs text-red-500 mt-1">
+                      {errors.furnishings}
+                    </p>
+                  )}
+                </div>
+              </div>
             )}
           </div>
 
@@ -317,7 +425,7 @@ export default function PostVacancyModal({ onClose, onSuccess }) {
           <div>
             <Label>Comments</Label>
             <textarea
-              placeholder="e.g. Available from May 1st, fully furnished, AC included..."
+              placeholder="e.g. Available from May 1st, AC included, near entrance..."
               value={form.comments}
               onChange={(e) => set("comments", e.target.value)}
               rows={3}
@@ -325,7 +433,6 @@ export default function PostVacancyModal({ onClose, onSuccess }) {
             />
           </div>
 
-          {/* Divider */}
           <div className="border-t border-gray-100" />
 
           {/* Poster details */}
@@ -361,7 +468,6 @@ export default function PostVacancyModal({ onClose, onSuccess }) {
             </div>
           </div>
 
-          {/* Submit error */}
           {errors.submit && (
             <p className="text-sm text-red-500 text-center">{errors.submit}</p>
           )}
