@@ -83,7 +83,23 @@ export default function VacancyCard({ vacancy, onDelete }) {
   });
 
   const whatsappMessage = encodeURIComponent(
-    `Hi ${poster_name}, I saw your vacancy listing at ${property} on SRM Vacancies. Is it still available?`,
+    `Hi ${poster_name}! 👋
+
+I found your vacancy listing on SRM Vacancies and I'm interested. Here are the details I saw:
+
+🏠 Property: ${property}
+🛏️ Flat Type: ${flat_type}
+🏢 Floor: ${floor}${floor === 1 ? "st" : floor === 2 ? "nd" : floor === 3 ? "rd" : "th"} Floor
+👥 Gender Allowed: ${gender}
+🛋️ Furnishing: ${FURNISHING_LABELS[furnishing_type] || furnishing_type || "Not specified"}
+💰 Rent: ₹${rent?.toLocaleString("en-IN")} / month
+🔒 Deposit: ₹${deposit?.toLocaleString("en-IN")}
+🔧 Maintenance: ${maintenance_included ? "Included in rent" : maintenance ? `₹${maintenance?.toLocaleString("en-IN")}/mo` : "Not specified"}
+🤝 Brokerage: ${no_brokerage ? "No brokerage" : brokerage ? `₹${brokerage?.toLocaleString("en-IN")}` : "Not specified"}
+${preferred && preferred.length > 0 ? `✅ Preferred: ${preferred.map((p) => PREFERRED_LABELS[p] || p).join(", ")}` : ""}
+${comments ? `📝 Comments: ${comments}` : ""}
+
+Is this vacancy still available? I'd love to know more!`,
   );
   const whatsappLink = `https://wa.me/91${poster_phone}?text=${whatsappMessage}`;
 
