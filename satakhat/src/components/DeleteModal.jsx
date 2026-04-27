@@ -6,22 +6,35 @@ export default function DeleteModal({ vacancy, onConfirm, onClose }) {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // const handleDelete = async () => {
+  //   if (!code.trim()) {
+  //     setError("Please enter your delete code.");
+  //     return;
+  //   }
+
+  //   if (code.trim() !== vacancy.delete_code) {
+  //     setError("Incorrect delete code. Please try again.");
+  //     return;
+  //   }
+
+  //   setLoading(true);
+  //   await onConfirm(vacancy.id, code.trim());
+  //   setLoading(false);
+  // };
+
   const handleDelete = async () => {
     if (!code.trim()) {
       setError("Please enter your delete code.");
       return;
     }
 
-    if (code.trim() !== vacancy.delete_code) {
-      setError("Incorrect delete code. Please try again.");
-      return;
-    }
-
     setLoading(true);
-    await onConfirm(vacancy.id, code.trim());
+    const result = await onConfirm(vacancy.id, code.trim());
+    if (result === false) {
+      setError("Incorrect delete code. Please try again.");
+    }
     setLoading(false);
   };
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
       {/* Backdrop */}

@@ -34,13 +34,34 @@ export default function Home() {
       const sixtyDaysAgo = new Date();
       sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
 
-      let query = supabase
+      const { data, error } = await supabase
         .from("vacancies")
-        .select("*")
+        .select(
+          `
+        id,
+        property,
+        gender,
+        rent,
+        deposit,
+        flat_type,
+        floor,
+        furnishing_type,
+        has_extra_costs,
+        maintenance,
+        maintenance_included,
+        furnishings,
+        brokerage,
+        no_brokerage,
+        preferred,
+        comments,
+        poster_name,
+        poster_phone,
+        created_at
+      `,
+        )
         .gte("created_at", sixtyDaysAgo.toISOString())
         .order("created_at", { ascending: false });
 
-      const { data, error } = await query;
       if (error) throw error;
       setVacancies(data || []);
     } catch (err) {
@@ -94,26 +115,20 @@ export default function Home() {
     setShowDeleteModal(true);
   };
 
-  // const handleDeleteConfirm = async (id) => {
-  //   try {
-  //     const { error } = await supabase.from("vacancies").delete().eq("id", id);
-  //     if (error) throw error;
-  //     setShowDeleteModal(false);
-  //     setSelectedVacancy(null);
-  //     fetchVacancies();
-  //   } catch (err) {
-  //     console.error("Failed to delete vacancy:", err);
-  //   }
-  // };
   const handleDeleteConfirm = async (id, code) => {
     try {
-      const { error } = await supabase
-        .from("vacancies")
-        .delete()
-        .eq("id", id)
-        .eq("delete_code", code); // match both id AND code server-side
+      const { data, error } = await supabase.rpc("delete_vacancy_by_code", {
+        vacancy_id: id,
+        input_code: code,
+      });
 
       if (error) throw error;
+
+      if (!data) {
+        console.error("Delete failed — code mismatch");
+        return;
+      }
+
       setShowDeleteModal(false);
       setSelectedVacancy(null);
       fetchVacancies();
